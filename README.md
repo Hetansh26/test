@@ -2,6 +2,8 @@
 
 A modern and stylish web application for creating, showcasing, and managing fashion "drip" collections. Built with a clean UI, responsive design, and smooth user experience.
 
+🌐 **Live site**: [your-drip-studio.pages.dev](https://your-drip-studio.pages.dev) ← _replace with your deployed URL_
+
 ---
 
 ## 🚀 Features
@@ -47,12 +49,16 @@ your-drip-studio/
 │   ├── client.tsx           # Browser hydration entry
 │   └── server.ts            # Cloudflare Workers SSR entry
 │
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # CI: typecheck, lint, build
 ├── .env                     # Local env vars (never commit!)
 ├── .env.example             # Safe template to commit
 ├── wrangler.jsonc           # Cloudflare Workers config
 ├── vite.config.ts           # Vite + TanStack Start config
 ├── tsconfig.json            # TypeScript config
 ├── components.json          # shadcn/ui config
+├── LICENSE                  # MIT License
 └── package.json
 ```
 
@@ -95,6 +101,7 @@ wrangler deploy
 |---|---|---|
 | `VITE_SUPABASE_URL` | ✅ | Your Supabase project URL |
 | `VITE_SUPABASE_PUBLISHABLE_KEY` | ✅ | Supabase anon/public key |
+| `VITE_SUPABASE_PROJECT_ID` | ✅ | Supabase project ID |
 | `SUPABASE_URL` | ✅ (server) | Same URL for SSR/edge functions |
 | `SUPABASE_PUBLISHABLE_KEY` | ✅ (server) | Same key for SSR/edge functions |
 | `VITE_CASHFREE_APP_ID` | 💳 | Cashfree App ID (client-side) |
@@ -102,11 +109,37 @@ wrangler deploy
 
 > ⚠️ **Never commit `.env`** — it's in `.gitignore`. Use `.env.example` as a safe template.
 
+For CI/CD, add these as **GitHub Actions secrets** (repo Settings → Secrets and variables → Actions):
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_PROJECT_ID`
+- `VITE_CASHFREE_APP_ID`
+
+> `CASHFREE_SECRET_KEY` and `SUPABASE_PUBLISHABLE_KEY` are server-only — only add them to Cloudflare Worker secrets via `wrangler secret put`, never to GitHub Actions.
+
+---
+
+## 🚨 If You Accidentally Committed `.env`
+
+```bash
+# Remove from Git tracking (keeps the file locally)
+git rm --cached .env
+git commit -m "chore: stop tracking .env"
+git push
+
+# Then immediately rotate ALL keys that were in it:
+# - Supabase: dashboard.supabase.com → Project Settings → API → Regenerate
+# - Cashfree: merchant.cashfree.com → Developers → API Keys → Regenerate
+```
+
 ---
 
 ## 🔒 Security Checklist Before Publishing
 
-- [ ] Enable Row Level Security (RLS) on all Supabase tables
-- [ ] Verify `.env` is in `.gitignore` and not tracked by Git
-- [ ] Cashfree `SECRET_KEY` is only in server-side env (never `VITE_`-prefixed)
-- [ ] Add your production domain to Supabase "Allowed URLs" settings
+- [x] `.env` is in `.gitignore` and not tracked by Git
+- [x] `.env.example` has no real values — only empty placeholders
+- [x] `CASHFREE_SECRET_KEY` is server-side only (no `VITE_` prefix)
+- [ ] Row Level Security (RLS) enabled on all Supabase tables
+- [ ] Production domain added to Supabase "Allowed URLs"
+- [ ] Cloudflare Worker secrets set via `wrangler secret put`
+- [ ] GitHub Actions secrets configured for CI builds
